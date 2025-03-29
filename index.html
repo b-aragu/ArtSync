@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtSync - AI Co-Drawing Studio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-dark: #5649c0;
+            --secondary: #a29bfe;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --accent: #fd79a8;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --error: #d63031;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        header.scrolled {
+            padding: 1rem 0;
+            background: rgba(108, 92, 231, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        
+        .logo i {
+            color: var(--accent);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        nav a:hover {
+            background-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .main {
+            padding: 8rem 0 3rem;
+        }
+        
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            color: var(--dark);
+            animation: fadeInUp 1s ease 0.2s forwards;
+            opacity: 0;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            animation: fadeInUp 1s ease 0.4s forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.6s ease;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-accent {
+            background-color: var(--accent);
+        }
+        
+        .btn-accent:hover {
+            background-color: #e84393;
+        }
+        
+        .drawing-container {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            padding: 2rem;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .drawing-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+        }
+        
+        .drawing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .drawing-header h2 {
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .tools {
+            display: flex;
+            gap: 0.8rem;
+        }
+        
+        .tool-btn {
+            background-color: var(--light);
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--dark);
+            position: relative;
+        }
+        
+        .tool-btn:hover {
+            background-color: var(--secondary);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .tool-btn .tooltip {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--dark);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tool-btn:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+            top: -45px;
+        }
+        
+        .iframe-container {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .iframe-container:hover {
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        }
+        
+        .iframe-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .iframe-container:hover .iframe-overlay {
+            opacity: 1;
+        }
+        
+        .overlay-btn {
+            background-color: white;
+            color: var(--primary);
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .overlay-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 0;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+            transition: all 0.6s ease;
+        }
+        
+        .feature-card:hover::before {
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 2.8rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+            color: var(--accent);
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 1.2rem;
+            color: var(--primary);
+            font-size: 1.4rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .feature-card h3::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--secondary);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover h3::after {
+            width: 60px;
+            background-color: var(--accent);
+        }
+        
+        .gallery {
+            margin-bottom: 3rem;
+        }
+        
+        .gallery h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            font-size: 2rem;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .gallery-item {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            aspect-ratio: 1/1;
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.5s ease;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+        
+        .gallery-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1.5rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+        
+        .gallery-overlay h3 {
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        
+        .gallery-overlay p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+        
+        .testimonials {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+            border-radius: 16px;
+            color: white;
+        }
+        
+        .testimonials h2 {
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2rem;
+        }
+        
+        .testimonial-slider {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .testimonial {
+            background-color: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .testimonial.active {
+            display: block;
+        }
+        
+        .testimonial-text {
+            font-size: 1.1rem;
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .testimonial-text::before,
+        .testimonial-text::after {
+            content: '"';
+            font-size: 2rem;
+            color: rgba(255,255,255,0.5);
+            position: absolute;
+        }
+        
+        .testimonial-text::before {
+            top: -15px;
+            left: -10px;
+        }
+        
+        .testimonial-text::after {
+            bottom: -25px;
+            right: -10px;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+        
+        .author-info h4 {
+            margin-bottom: 0.2rem;
+        }
+        
+        .author-info p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .slider-dot.active {
+            background-color: white;
+            transform: scale(1.2);
+        }
+        
+        .cta {
+            text-align: center;
+            padding: 4rem 0;
+            background-color: white;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        
+        .cta h2 {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .cta p {
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, var(--dark), #1e272e);
+            color: white;
+            padding: 4rem 0 2rem;
+            position: relative;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .footer-column h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--accent);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .social-link {
+            color: white;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .social-link:hover {
+            background-color: var(--accent);
+            transform: translateY(-3px);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .copyright {
+            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .footer-links-bottom {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-links-bottom a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-links-bottom a:hover {
+            color: white;
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .back-to-top:hover {
+            background-color: var(--accent);
+            transform: translateY(-5px);
+        }
+        
+        /* Loading animation */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--light);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .cta h2 {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem 0;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .main {
+                padding-top: 7rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .drawing-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .tools {
+                align-self: flex-end;
+            }
+            
+            .iframe-container iframe {
+                width: 100%;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .feature-card {
+                padding: 1.5rem;
+            }
+            
+            .testimonial {
+                padding: 1.5rem;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader">
+        <div class="loader-spinner"></div>
+    </div>
+    
+    <!-- Back to Top Button -->
+    <div class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+    
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-paint-brush"></i>
+                    <span>ArtSync</span>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                        <li><a href="#features"><i class="fas fa-lightbulb"></i> Features</a></li>
+                        <li><a href="#gallery"><i class="fas fa-images"></i> Gallery</a></li>
+                        <li><a href="#testimonials"><i class="fas fa-quote-left"></i> Testimonials</a></li>
+                        <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <main class="main">
+        <div class="container">
+            <section class="hero">
+                <h1>Create Art Together with AI</h1>
+                <p>ArtSync is a revolutionary collaborative drawing platform where your creativity meets artificial intelligence. Start with a simple sketch and watch as our advanced AI transforms it into a masterpiece through real-time collaboration.</p>
+                <div class="hero-buttons">
+                    <a href="#drawing" class="btn btn-accent"><i class="fas fa-magic"></i> Start Drawing Now</a>
+                    <a href="#features" class="btn btn-outline"><i class="fas fa-play"></i> Watch Demo</a>
+                </div>
+            </section>
+            
+            <section id="drawing" class="drawing-container">
+                <div class="drawing-header">
+                    <h2><i class="fas fa-pencil-alt"></i> Collaborative Canvas</h2>
+                    <div class="tools">
+                        <button class="tool-btn" title="Undo">
+                            <i class="fas fa-undo"></i>
+                            <span class="tooltip">Undo</span>
+                        </button>
+                        <button class="tool-btn" title="Redo">
+                            <i class="fas fa-redo"></i>
+                            <span class="tooltip">Redo</span>
+                        </button>
+                        <button class="tool-btn" title="Clear">
+                            <i class="fas fa-trash"></i>
+                            <span class="tooltip">Clear</span>
+                        </button>
+                        <button class="tool-btn" title="Save">
+                            <i class="fas fa-save"></i>
+                            <span class="tooltip">Save</span>
+                        </button>
+                        <button class="tool-btn" title="Share">
+                            <i class="fas fa-share-alt"></i>
+                            <span class="tooltip">Share</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="iframe-container">
+                    <iframe 
+                        src="https://trudy-gemini-codrawing.hf.space" 
+                        frameborder="0" 
+                        width="850" 
+                        height="450">
+                    </iframe>
+                    <div class="iframe-overlay">
+                        <button class="overlay-btn">
+                            <i class="fas fa-expand"></i> Fullscreen Mode
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="features" class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>Intelligent AI Collaboration</h3>
+                    <p>Our neural network analyzes your strokes in real-time, suggesting complementary elements and completing your artistic vision with stunning accuracy.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Real-time Synchronization</h3>
+                    <p>Experience seamless collaboration as the AI responds instantly to your drawing, creating a dynamic creative partnership that evolves with every stroke.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3>Style Transformation</h3>
+                    <p>Transform your artwork with a single click, applying styles ranging from classic oil paintings to modern digital art and everything in between.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>Advanced Layering</h3>
+                    <p>Work with unlimited layers, blending modes, and opacity controls to create complex compositions with professional-grade tools.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Creative Suggestions</h3>
+                    <p>Stuck for ideas? Our AI generates creative suggestions based on your current artwork to help overcome artist's block.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cloud-download-alt"></i>
+                    </div>
+                    <h3>Cloud Integration</h3>
+                    <p>Automatically save your work to the cloud with version history, accessible from any device whenever inspiration strikes.</p>
+                </div>
+            </section>
+            
+            <section id="gallery" class="gallery">
+                <h2><i class="fas fa-images"></i> Community Gallery</h2>
+                <p class="subtitle">Explore creations from our talented community of artists and AI collaborators</p>
+                
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <img src="https://source.unsplash.com/random/600x600/?digital-art" alt="AI Artwork">
+                        <div class="gallery-overlay">
+                            <h3>Neon Dreams</h3>
+                            <p>By Sarah & ArtSync AI</p>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://source.unsplash.com/random/600x600/?abstract" alt="AI Artwork">
+                        <div class="gallery-overlay">
+                            <h3>Abstract Harmony</h3>
+                            <p>By Mark & ArtSync AI</p>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://source.unsplash.com/random/600x600/?fantasy" alt="AI Artwork">
+                        <div class="gallery-overlay">
+                            <h3>Fantasy Realm</h3>
+                            <p>By Emma & ArtSync AI</p>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://source.unsplash.com/random/600x600/?portrait" alt="AI Artwork">
+                        <div class="gallery-overlay">
+                            <h3>Digital Portrait</h3>
+                            <p>By Alex & ArtSync AI</p>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://source.unsplash.com/random/600x600/?landscape" alt="AI Artwork">
+                        <div class="gallery-overlay">
+                            <h3>Mystic Valley</h3>
+                            <p>By James & ArtSync AI</p>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://source.unsplash.com/random/600x600/?surreal" alt="AI Artwork">
+                        <div class="gallery-overlay">
+                            <h3>Surreal Vision</h3>
+                            <p>By Lisa & ArtSync AI</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="testimonials" class="testimonials">
+                <h2>What Artists Are Saying</h2>
+                
+                <div class="testimonial-slider">
+                    <div class="testimonial active">
+                        <p class="testimonial-text">ArtSync has completely transformed my creative process. The AI suggestions often take my work in directions I would never have considered, pushing my art to new levels.</p>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sarah J." class="author-avatar">
+                            <div class="author-info">
+                                <h4>Sarah Johnson</h4>
+                                <p>Digital Artist</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial">
+                        <p class="testimonial-text">As someone who struggles with artist's block, ArtSync has been a game-changer. The creative prompts and real-time collaboration keep me inspired and productive.</p>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Michael T." class="author-avatar">
+                            <div class="author-info">
+                                <h4>Michael Thompson</h4>
+                                <p>Illustrator</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial">
+                        <p class="testimonial-text">I've used many digital art tools, but none have the magical quality of ArtSync. It's like having a creative partner who understands my style and enhances it.</p>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Priya K." class="author-avatar">
+                            <div class="author-info">
+                                <h4>Priya Kapoor</h4>
+                                <p>Concept Artist</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-controls">
+                        <div class="slider-dot active" data-slide="0"></div>
+                        <div class="slider-dot" data-slide="1"></div>
+                        <div class="slider-dot" data-slide="2"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="cta">
+                <h2>Ready to Transform Your Art?</h2>
+                <p>Join thousands of artists who are already collaborating with AI to create stunning artwork. No credit card required to start your creative journey.</p>
+                <div class="cta-buttons">
+                    <a href="#drawing" class="btn btn-accent"><i class="fas fa-paint-brush"></i> Start Drawing Free</a>
+                    <a href="#" class="btn btn-outline"><i class="fas fa-crown"></i> Upgrade to Pro</a>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>ArtSync</h3>
+                    <p>Where human creativity meets artificial intelligence to create the art of tomorrow.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Features</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> AI Collaboration</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Style Transfer</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Creative Suggestions</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Cloud Storage</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Export Options</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Documentation</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Tutorials</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Blog</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Community</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> API</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Company</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> About Us</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Careers</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Press</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="copyright">© 2023 ArtSync AI. All rights reserved.</p>
+                <div class="footer-links-bottom">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Cookie Policy</a>
+                    <a href="#">GDPR</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Loading screen
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.querySelector('.loader').classList.add('hidden');
+            }, 1000);
+        });
+        
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+            
+            // Back to top button
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.scrollY > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+        
+        // Back to top button
+        document.querySelector('.back-to-top').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Testimonial slider
+        const testimonials = document.querySelectorAll('.testimonial');
+        const dots = document.querySelectorAll('.slider-dot');
+        let currentSlide = 0;
+        
+        function showSlide(index) {
+            testimonials.forEach(testimonial => testimonial.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            testimonials[index].classList.add('active');
+            dots[index].classList.add('active');
+            currentSlide = index;
+        }
+        
+        dots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                const slideIndex = parseInt(this.getAttribute('data-slide'));
+                showSlide(slideIndex);
+            });
+        });
+        
+        // Auto-rotate testimonials
+        setInterval(() => {
+            currentSlide = (currentSlide + 1) % testimonials.length;
+            showSlide(currentSlide);
+        }, 5000);
+        
+        // Tool button animations
+        document.querySelectorAll('.tool-btn').forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
+        });
+        
+        // Fullscreen functionality for the iframe
+        document.querySelector('.overlay-btn').addEventListener('click', function() {
+            const iframe = document.querySelector('iframe');
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) {
+                iframe.msRequestFullscreen();
+            }
+        });
+        
+        // Tool button functionality
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.querySelector('.tooltip').textContent;
+                alert(`In a full implementation, this would ${action.toLowerCase()} your artwork.`);
+            });
+        });
+        
+        // Gallery item hover effect
+        document.querySelectorAll('.gallery-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.querySelector('img').style.transform = 'scale(1.1)';
+                this.querySelector('.gallery-overlay').style.opacity = '1';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.querySelector('img').style.transform = 'scale(1)';
+                this.querySelector('.gallery-overlay').style.opacity = '0';
+            });
+        });
+        
+        // Feature card hover effect
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px)';
+                this.querySelector('.feature-icon').style.transform = 'scale(1.1) rotate(5deg)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.querySelector('.feature-icon').style.transform = '';
+            });
+        });
+    </script>
+</body>
+</html>
