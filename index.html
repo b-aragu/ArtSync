@@ -302,6 +302,18 @@
             overflow: hidden;
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        }
+        
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
         }
         
         .iframe-container:hover {
@@ -320,6 +332,7 @@
             justify-content: center;
             opacity: 0;
             transition: all 0.3s ease;
+            z-index: 10;
         }
         
         .iframe-container:hover .iframe-overlay {
@@ -346,6 +359,40 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.15);
             background-color: var(--primary);
             color: white;
+        }
+        
+        /* Fullscreen mode styles */
+        .iframe-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            padding-bottom: 0;
+            border-radius: 0;
+            background: white;
+        }
+        
+        .iframe-container.fullscreen iframe {
+            height: calc(100% - 60px);
+        }
+        
+        .fullscreen-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            z-index: 10000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .fullscreen-controls button {
+            margin: 0 0.5rem;
         }
         
         .features {
@@ -505,7 +552,7 @@
             text-align: center;
             margin-bottom: 3rem;
             font-size: 2rem;
-        }
+}
         
         .testimonial-slider {
             max-width: 800px;
@@ -856,6 +903,16 @@
                 flex-direction: column;
                 align-items: center;
             }
+            
+            /* Mobile-specific iframe adjustments */
+            .iframe-container {
+                padding-bottom: 75%; /* Taller aspect ratio for mobile */
+            }
+            
+            .overlay-btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
         }
         
         @media (max-width: 576px) {
@@ -873,6 +930,18 @@
             
             .footer-content {
                 grid-template-columns: 1fr;
+            }
+            
+            /* Even more mobile-specific iframe adjustments */
+            .iframe-container {
+                padding-bottom: 100%; /* Square aspect ratio for very small screens */
+            }
+        }
+        
+        /* Orientation-specific styles */
+        @media screen and (orientation: landscape) and (max-width: 768px) {
+            .iframe-container {
+                padding-bottom: 56.25%; /* Wider aspect ratio for landscape */
             }
         }
     </style>
@@ -946,15 +1015,14 @@
                     </div>
                 </div>
                 
-                <div class="iframe-container">
+                <div class="iframe-container" id="artSyncCanvas">
                     <iframe 
                         src="https://trudy-gemini-codrawing.hf.space" 
                         frameborder="0" 
-                        width="850" 
-                        height="450">
+                        allowfullscreen>
                     </iframe>
                     <div class="iframe-overlay">
-                        <button class="overlay-btn">
+                        <button class="overlay-btn" id="fullscreenBtn">
                             <i class="fas fa-expand"></i> Fullscreen Mode
                         </button>
                     </div>
@@ -1267,15 +1335,74 @@
             });
         });
         
-        // Fullscreen functionality for the iframe
-        document.querySelector('.overlay-btn').addEventListener('click', function() {
-            const iframe = document.querySelector('iframe');
-            if (iframe.requestFullscreen) {
-                iframe.requestFullscreen();
-            } else if (iframe.webkitRequestFullscreen) {
-                iframe.webkitRequestFullscreen();
-            } else if (iframe.msRequestFullscreen) {
-                iframe.msRequestFullscreen();
+        // Enhanced fullscreen functionality
+        const iframeContainer = document.getElementById('artSyncCanvas');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        let isFullscreen = false;
+        
+        // Create fullscreen controls
+        const fullscreenControls = document.createElement('div');
+        fullscreenControls.className = 'fullscreen-controls';
+        fullscreenControls.innerHTML = `
+            <button class="btn btn-outline" id="exitFullscreenBtn">
+                <i class="fas fa-compress"></i> Exit Fullscreen
+            </button>
+            <button class="btn btn-accent" id="rotateScreenBtn">
+                <i class="fas fa-sync-alt"></i> Rotate Orientation
+            </button>
+        `;
+        document.body.appendChild(fullscreenControls);
+        
+        // Toggle fullscreen mode
+        function toggleFullscreen() {
+            if (!isFullscreen) {
+                // Enter fullscreen
+                iframeContainer.classList.add('fullscreen');
+                fullscreenControls.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
+                // Scroll to the iframe
+                setTimeout(() => {
+                    iframeContainer.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+                
+                isFullscreen = true;
+            } else {
+                // Exit fullscreen
+                iframeContainer.classList.remove('fullscreen');
+                fullscreenControls.style.display = 'none';
+                document.body.style.overflow = '';
+                isFullscreen = false;
+            }
+        }
+        
+        // Event listeners for fullscreen buttons
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        
+        document.getElementById('exitFullscreenBtn').addEventListener('click', toggleFullscreen);
+        
+        // Rotate screen orientation (for mobile)
+        document.getElementById('rotateScreenBtn').addEventListener('click', function() {
+            if (screen.orientation) {
+                try {
+                    if (screen.orientation.type.includes('portrait')) {
+                        screen.orientation.lock('landscape').catch(e => console.log(e));
+                    } else {
+                        screen.orientation.lock('portrait').catch(e => console.log(e));
+                    }
+                } catch (e) {
+                    console.log("Orientation lock not supported:", e);
+                    alert("Your device doesn't support screen orientation locking.");
+                }
+            } else {
+                alert("Screen orientation API not supported on your device.");
+            }
+        });
+        
+        // Handle escape key to exit fullscreen
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isFullscreen) {
+                toggleFullscreen();
             }
         });
         
@@ -1312,6 +1439,25 @@
                 this.querySelector('.feature-icon').style.transform = '';
             });
         });
+        
+        // Mobile-specific optimizations
+        function checkIfMobile() {
+            return window.innerWidth <= 768;
+        }
+        
+        // Adjust iframe height on mobile devices
+        function adjustIframeHeight() {
+            if (checkIfMobile()) {
+                const aspectRatio = window.innerHeight > window.innerWidth ? 1.5 : 0.75;
+                document.querySelector('.iframe-container').style.paddingBottom = `${aspectRatio * 100}%`;
+            }
+        }
+        
+        // Initial adjustment
+        adjustIframeHeight();
+        
+        // Adjust on resize
+        window.addEventListener('resize', adjustIframeHeight);
     </script>
 </body>
 </html>
