@@ -74,6 +74,7 @@
         
         .logo:hover {
             transform: scale(1.05);
+            cursor: pointer;
         }
         
         .logo i {
@@ -239,6 +240,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         
         .drawing-header h2 {
@@ -251,6 +254,7 @@
         .tools {
             display: flex;
             gap: 0.8rem;
+            flex-wrap: wrap;
         }
         
         .tool-btn {
@@ -296,103 +300,23 @@
             top: -45px;
         }
         
-        .iframe-container {
+        .canvas-wrapper {
             position: relative;
-            border-radius: 12px;
+            width: 100%;
+            padding-bottom: 60%; /* Responsive aspect ratio */
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             overflow: hidden;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            width: 100%;
-            height: 0;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
         }
         
-        .iframe-container iframe {
+        .canvas-wrapper iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             border: none;
-        }
-        
-        .iframe-container:hover {
-            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-        }
-        
-        .iframe-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.3));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 10;
-        }
-        
-        .iframe-container:hover .iframe-overlay {
-            opacity: 1;
-        }
-        
-        .overlay-btn {
-            background-color: white;
-            color: var(--primary);
-            border: none;
-            padding: 0.8rem 1.8rem;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .overlay-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            background-color: var(--primary);
-            color: white;
-        }
-        
-        /* Fullscreen mode styles */
-        .iframe-container.fullscreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 9999;
-            padding-bottom: 0;
-            border-radius: 0;
-            background: white;
-        }
-        
-        .iframe-container.fullscreen iframe {
-            height: calc(100% - 60px);
-        }
-        
-        .fullscreen-controls {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: center;
-            z-index: 10000;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .fullscreen-controls button {
-            margin: 0 0.5rem;
         }
         
         .features {
@@ -561,7 +485,7 @@
             text-align: center;
             margin-bottom: 3rem;
             font-size: 2rem;
-}
+        }
         
         .testimonial-slider {
             max-width: 800px;
@@ -697,7 +621,7 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 2rem;
             margin-bottom: 3rem;
-}
+        }
         
         .footer-column h3 {
             margin-bottom: 1.5rem;
@@ -904,23 +828,13 @@
                 align-self: flex-end;
             }
             
-            .iframe-container iframe {
-                width: 100%;
+            .canvas-wrapper {
+                padding-bottom: 90%; /* Taller aspect ratio for mobile */
             }
             
             .cta-buttons {
                 flex-direction: column;
                 align-items: center;
-            }
-            
-            /* Mobile-specific iframe adjustments */
-            .iframe-container {
-                padding-bottom: 75%; /* Taller aspect ratio for mobile */
-            }
-            
-            .overlay-btn {
-                padding: 0.6rem 1.2rem;
-                font-size: 0.9rem;
             }
         }
         
@@ -941,16 +855,15 @@
                 grid-template-columns: 1fr;
             }
             
-            /* Even more mobile-specific iframe adjustments */
-            .iframe-container {
-                padding-bottom: 100%; /* Square aspect ratio for very small screens */
+            .canvas-wrapper {
+                padding-bottom: 120%; /* Square aspect ratio for very small screens */
             }
         }
         
-        /* Orientation-specific styles */
-        @media screen and (orientation: landscape) and (max-width: 768px) {
-            .iframe-container {
-                padding-bottom: 56.25%; /* Wider aspect ratio for landscape */
+        /* Portrait mode for tablets */
+        @media (min-width: 600px) and (max-width: 900px) and (orientation: portrait) {
+            .canvas-wrapper {
+                padding-bottom: 80%;
             }
         }
     </style>
@@ -1024,17 +937,12 @@
                     </div>
                 </div>
                 
-                <div class="iframe-container" id="artSyncCanvas">
+                <div class="canvas-wrapper">
                     <iframe 
                         src="https://trudy-gemini-codrawing.hf.space" 
-                        frameborder="0" 
-                        allowfullscreen>
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
                     </iframe>
-                    <div class="iframe-overlay">
-                        <button class="overlay-btn" id="fullscreenBtn">
-                            <i class="fas fa-expand"></i> Fullscreen Mode
-                        </button>
-                    </div>
                 </div>
             </section>
             
@@ -1071,7 +979,7 @@
                     <p>Work with unlimited layers, blending modes, and opacity controls to create complex compositions with professional-grade tools.</p>
                 </div>
                 
-                <div class="feature-card">
+                <div class="feature_card">
                     <div class="feature-icon">
                         <i class="fas fa-brain"></i>
                     </div>
@@ -1206,7 +1114,7 @@
                     </ul>
                 </div>
                 
-                <div class="footer-column">
+                <div class="footer_column">
                     <h3>Resources</h3>
                     <ul class="footer-links">
                         <li><a href="#"><i class="fas fa-chevron-right"></i> Documentation</a></li>
@@ -1331,77 +1239,6 @@
             });
         });
         
-        // Enhanced fullscreen functionality
-        const iframeContainer = document.getElementById('artSyncCanvas');
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        let isFullscreen = false;
-        
-        // Create fullscreen controls
-        const fullscreenControls = document.createElement('div');
-        fullscreenControls.className = 'fullscreen-controls';
-        fullscreenControls.innerHTML = `
-            <button class="btn btn-outline" id="exitFullscreenBtn">
-                <i class="fas fa-compress"></i> Exit Fullscreen
-            </button>
-            <button class="btn btn-accent" id="rotateScreenBtn">
-                <i class="fas fa-sync-alt"></i> Rotate Orientation
-            </button>
-        `;
-        document.body.appendChild(fullscreenControls);
-        
-        // Toggle fullscreen mode
-        function toggleFullscreen() {
-            if (!isFullscreen) {
-                // Enter fullscreen
-                iframeContainer.classList.add('fullscreen');
-                fullscreenControls.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-                
-                // Scroll to the iframe
-                setTimeout(() => {
-                    iframeContainer.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-                
-                isFullscreen = true;
-            } else {
-                // Exit fullscreen
-                iframeContainer.classList.remove('fullscreen');
-                fullscreenControls.style.display = 'none';
-                document.body.style.overflow = '';
-                isFullscreen = false;
-            }
-        }
-        
-        // Event listeners for fullscreen buttons
-        fullscreenBtn.addEventListener('click', toggleFullscreen);
-        
-        document.getElementById('exitFullscreenBtn').addEventListener('click', toggleFullscreen);
-        
-        // Rotate screen orientation (for mobile)
-        document.getElementById('rotateScreenBtn').addEventListener('click', function() {
-            if (screen.orientation) {
-                try {
-                    if (screen.orientation.type.includes('portrait')) {
-                        screen.orientation.lock('landscape').catch(e => console.log(e));
-                    } else {
-                        screen.orientation.lock('portrait').catch(e => console.log(e));
-                    }
-                } catch (e) {
-                    console.log("Orientation lock not supported:", e);
-                    alert("Your device doesn't support screen orientation locking.");
-                }
-            } else {
-                alert("Screen orientation API not supported on your device.");
-            }
-        });
-        
-        // Handle escape key to exit fullscreen
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && isFullscreen) {
-                toggleFullscreen();
-            }
-        });
-        
         // Tool button functionality
         document.querySelectorAll('.tool-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1436,24 +1273,30 @@
             });
         });
         
-        // Mobile-specific optimizations
-        function checkIfMobile() {
-            return window.innerWidth <= 768;
-        }
-        
-        // Adjust iframe height on mobile devices
-        function adjustIframeHeight() {
-            if (checkIfMobile()) {
-                const aspectRatio = window.innerHeight > window.innerWidth ? 1.5 : 0.75;
-                document.querySelector('.iframe-container').style.paddingBottom = `${aspectRatio * 100}%`;
+        // Responsive canvas adjustments
+        function adjustCanvasSize() {
+            const canvasWrapper = document.querySelector('.canvas-wrapper');
+            
+            if (window.innerWidth < 576) { // Small mobile
+                canvasWrapper.style.paddingBottom = '120%';
+            } else if (window.innerWidth < 768) { // Mobile
+                canvasWrapper.style.paddingBottom = '90%';
+            } else if (window.innerWidth < 992) { // Tablet
+                if (window.innerHeight > window.innerWidth) { // Portrait
+                    canvasWrapper.style.paddingBottom = '80%';
+                } else { // Landscape
+                    canvasWrapper.style.paddingBottom = '60%';
+                }
+            } else { // Desktop
+                canvasWrapper.style.paddingBottom = '60%';
             }
         }
         
         // Initial adjustment
-        adjustIframeHeight();
+        adjustCanvasSize();
         
         // Adjust on resize
-        window.addEventListener('resize', adjustIframeHeight);
+        window.addEventListener('resize', adjustCanvasSize);
     </script>
 </body>
 </html>
